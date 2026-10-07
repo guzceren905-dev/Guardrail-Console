@@ -6,9 +6,7 @@ Guardrail Console composes OpenZeppelin Stellar smart-account policies with **x4
 
 ## Current status
 
-The repository currently contains a responsive dashboard preview with clearly labeled sample data and the approved product scope, architecture, and delivery milestones. It is not yet connected to Stellar RPC, a smart account, or either payment protocol.
-
-The ecosystem already has x402 spending-control projects. This project's focused differentiator is a shared owner-facing monitor for x402 and MPP Charge, built by composing official protocol packages and OpenZeppelin policy primitives rather than creating a new authorization or settlement layer.
+The repository contains a sample-data dashboard and an interactive Milestone 1 testnet setup flow at `/setup`. The setup uses Smart Account Kit and pre-deployed Protocol 27 OpenZeppelin artifacts. A live testnet account is not yet recorded in the evidence file.
 
 ## Run
 
@@ -17,20 +15,23 @@ Requirements: Node.js 22 or newer and pnpm.
     pnpm install
     pnpm dev
 
-Open http://localhost:3000.
+Open http://localhost:3000/setup to create or connect a testnet account and configure its agent spending rule. Use a browser with WebAuthn/passkey support.
 
-## Configuration
+## Testnet configuration
 
-Copy .env.example to .env.local when beginning RPC integration. Do not add secrets to the repository. The dashboard must remain read-only; any protocol or facilitator credentials belong only in server-side environment variables.
+Copy `.env.example` to `.env.local`. The values are public testnet contract/network references. Never put a wallet secret, passkey material, or privileged relayer token in the repository.
+
+The current Smart Account Kit uses fail-closed wallet verification. It relies on the public schema-2 Mercury indexer and its official testnet relayer proxy. If either dependency rejects the operation, stop and investigate; do not bypass wallet verification.
 
 ## Product and delivery docs
 
-- docs/product-scope.md
-- docs/architecture.md
-- docs/milestones.md
+- `docs/product-scope.md`
+- `docs/architecture.md`
+- `docs/milestones.md`
+- `docs/milestone-1-runbook.md`
 
 ## Security boundary
 
-The OpenZeppelin smart-account contracts and Smart Account Kit are distinct components. The SDK and this integration are not represented as independently audited. The final evidence must identify exact package versions, deployed WASM hashes, audit scope, and testnet transaction links.
+OpenZeppelin smart-account contracts and Smart Account Kit are distinct components. Smart Account Kit and this app integration are not independently audited. The evidence must identify exact versions, contract artifact hashes, transaction links, and this limitation.
 
-MPP Session/channel mode, mainnet, multi-tenant support, custom policy contracts, and custody are out of scope.
+Recipient allowlisting is out of scope for this MVP. The on-chain guardrails are the USDC spending cap and owner-controlled removal of the agent authorization. MPP Session/channel mode, mainnet, multi-tenant accounts, custom policy contracts, and custody are out of scope.
