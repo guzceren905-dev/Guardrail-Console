@@ -17,7 +17,6 @@ const RPC_URL = process.env.NEXT_PUBLIC_STELLAR_RPC_URL!;
 const NETWORK_PASSPHRASE = process.env.NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE!;
 const USDC_ISSUER = process.env.NEXT_PUBLIC_USDC_ISSUER!;
 const DAILY_CAP_USDC = 0.5;
-const LEDGER_WINDOW = 17_280;
 const RULE_NAME = "Guardrail Agent USDC Spend";
 const RULE_ID_KEY = "guardrail-agent-rule-id";
 
@@ -235,7 +234,7 @@ export default function SetupPage() {
             <button disabled={busy || ruleId === null || !agentAddress || !selectedRef.current} onClick={transfer} className="rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
               {ruleRevoked ? "Verify revoked agent transfer" : "Attempt transfer with agent signer"}
             </button>
-            <button disabled={busy || !ruleId} onClick={revokeAgent} className="rounded-md border border-rose-300 px-4 py-2 text-sm font-medium text-rose-700 disabled:opacity-50">
+            <button disabled={busy || ruleId === null || ruleRevoked} onClick={revokeAgent} className="rounded-md border border-rose-300 px-4 py-2 text-sm font-medium text-rose-700 disabled:opacity-50">
               Revoke agent rule
             </button>
           </div>
