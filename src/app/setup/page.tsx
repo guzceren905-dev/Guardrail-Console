@@ -83,6 +83,7 @@ export default function SetupPage() {
       const kit = await createKit();
       setStatus("Confirm ownership with your passkey.");
       const connected = await kit.connectWallet({ prompt: true });
+      if (!connected) throw new Error("No smart account was connected.");
       kitRef.current = kit;
       setAccountId(connected.contractId);
       const storedRule = sessionStorage.getItem(RULE_ID_KEY);
