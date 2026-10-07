@@ -25,6 +25,7 @@ export default function SetupPage() {
   const selectedRef = useRef<SelectedSigner[] | null>(null);
   const [accountId, setAccountId] = useState("");
   const [agentAddress, setAgentAddress] = useState("");
+  const [agentReady, setAgentReady] = useState(false);
   const [ruleId, setRuleId] = useState<number | null>(null);
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("0.1");
@@ -124,6 +125,7 @@ export default function SetupPage() {
       const result = await kit.signAndSubmitAdmin(tx);
       if (!result.success) throw new Error(result.error.message);
       selectedRef.current = selected;
+      setAgentReady(true);
       sessionStorage.setItem(RULE_ID_KEY, String(nextRuleId));
       setRuleId(nextRuleId);
       setAgentAddress(registered.address);
@@ -231,7 +233,7 @@ export default function SetupPage() {
             </label>
           </div>
           <div className="mt-3 flex flex-wrap gap-3">
-            <button disabled={busy || ruleId === null || !agentAddress || !selectedRef.current} onClick={transfer} className="rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+            <button disabled={busy || ruleId === null || !agentAddress || !agentReady} onClick={transfer} className="rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
               {ruleRevoked ? "Verify revoked agent transfer" : "Attempt transfer with agent signer"}
             </button>
             <button disabled={busy || ruleId === null || ruleRevoked} onClick={revokeAgent} className="rounded-md border border-rose-300 px-4 py-2 text-sm font-medium text-rose-700 disabled:opacity-50">
