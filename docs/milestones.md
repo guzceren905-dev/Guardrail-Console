@@ -6,12 +6,13 @@ Deliver a demonstrable testnet MVP in 30 calendar days. The revised estimate is 
 
 ## Milestone 1 — Account and policy spike (Days 1–5)
 
-- Pin Smart Account Kit and OpenZeppelin contract versions.
-- Deploy/configure one testnet smart account with owner and scoped agent authorization.
-- Apply a rolling 24-hour USDC cap and recipient allowlist.
-- Demonstrate owner revocation of the agent authorization.
-- Record contract addresses, WASM hashes, package versions, and the exact audit scope.
-- Gate: agent payment auth entry can be signed and an over-policy payment is rejected on-chain.
+- Pin Smart Account Kit, Stellar SDK, and OpenZeppelin source/artifact versions.
+- Deploy/configure one testnet smart account with owner passkey and an agent-only USDC SAC context rule.
+- Apply a ledger-window USDC cap (approximately 24 hours at 17,280 ledgers).
+- Demonstrate owner removal of the agent authorization rule.
+- Record contract addresses, WASM hashes, package versions, audit scope, and transaction evidence.
+- Gate: a transfer within the cap succeeds; a transfer above the cap is rejected on-chain; after owner revocation the agent transfer is rejected while owner administration remains available.
+- Recipient allowlisting is explicitly out of MVP scope; no on-chain recipient restriction is claimed.
 
 ## Milestone 2 — Protocol payment flows (Days 6–12)
 
@@ -33,7 +34,7 @@ Deliver a demonstrable testnet MVP in 30 calendar days. The revised estimate is 
 
 ## Milestone 4 — Evidence and release (Days 19–23)
 
-- Exercise allowed, cap-exceeded, non-allowlisted, and revoked-agent paths.
+- Exercise allowed, cap-exceeded, and revoked-agent paths.
 - Publish setup and architecture documentation with the integration security boundary.
 - Deploy a public testnet demo URL and capture a short walkthrough.
 - Package transaction hashes, Stellar Expert links, repository, demo URL, and video.
