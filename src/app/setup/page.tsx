@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Buffer } from "buffer";
 import { useRef, useState } from "react";
 
 type Kit = import("smart-account-kit").SmartAccountKit;
@@ -31,6 +32,8 @@ export default function SetupPage() {
   const [status, setStatus] = useState("No testnet account connected.");
   const [busy, setBusy] = useState(false);
   const [txHash, setTxHash] = useState("");
+  const [policyReadback, setPolicyReadback] = useState("");
+  const [ruleRevoked, setRuleRevoked] = useState(false);
 
   async function createKit() {
     const { SmartAccountKit, IndexedDBStorage } = await import("smart-account-kit");
@@ -92,13 +95,12 @@ export default function SetupPage() {
     await withBusy(async () => {
       const kit = kitRef.current;
       if (!kit || !accountId) throw new Error("Create or connect the owner account first.");
-      const [{ Keypair }, sdk] = await Promise.all([
+      const [{ Keypair, Asset, Networks }, sdk] = await Promise.all([
         import("@stellar/stellar-sdk"),
         import("smart-account-kit"),
       ]);
       const { createCallContractContext, createEd25519Signer, createSpendingLimitParams, LEDGERS_PER_DAY } = sdk;
-      const asset = new sdk.Asset("USDC", USDC_ISSUER);
-      const usdcSac = asset.contractId(sdk.Networks.TESTNET);
+      const usdcSac = new Asset("USDC", USDC_ISSUER).contractId(Networks.TESTNET);
       const keypair = Keypair.random();
       const registered = kit.externalSigners.addEd25519FromSecret(keypair.secret(), ED25519_VERIFIER);
       const signer = createEd25519Signer(ED25519_VERIFIER, Buffer.from(registered.publicKey, "hex"));
@@ -126,6 +128,9 @@ export default function SetupPage() {
       sessionStorage.setItem(RULE_ID_KEY, String(nextRuleId));
       setRuleId(nextRuleId);
       setAgentAddress(registered.address);
+      setRuleRevoked(false);
+      const readback = await kit.policyClients.spendingLimit(SPENDING_POLICY).getSpendingLimitData(nextRuleId);
+      setPolicyReadback(JSON.stringify(readback, (_key, value) => typeof value === "bigint" ? value.toString() : value));
       setStatus("Agent rule is confirmed. The key is memory-only and will not survive a page reload.");
       setTxHash(result.hash);
     });
@@ -169,10 +174,10 @@ export default function SetupPage() {
       setStatus("Approve removal of the agent rule with the owner passkey.");
       const result = await kit.signAndSubmitAdmin(await kit.rules.remove(ruleId));
       if (!result.success) throw new Error(result.error.message);
-      setStatus("Agent rule removed. Verify by attempting a transfer with the former agent signer.");
+      setRuleRevoked(true);
+      setStatus("Agent rule removed. Attempt a transfer with the former agent signer to verify revocation.");
       setTxHash(result.hash);
       sessionStorage.removeItem(RULE_ID_KEY);
-      setRuleId(null);
     });
   }
 
@@ -209,7 +214,8 @@ export default function SetupPage() {
           <p><strong>Status:</strong> {busy ? "Working…" : status}</p>
           {accountId && <p className="mt-1 break-all"><strong>Account:</strong> {accountId}</p>}
           {agentAddress && <p className="mt-1 break-all"><strong>Agent signer:</strong> {agentAddress}</p>}
-          {ruleId !== null && <p className="mt-1"><strong>Agent rule ID:</strong> {ruleId}</p>}
+          {ruleId !== null && <p className="mt-1"><strong>Agent rule ID:</strong> {ruleId}{ruleRevoked ? " (revoked)" : ""}</p>}
+          {policyReadback && <p className="mt-1 break-all"><strong>On-chain policy readback:</strong> {policyReadback}</p>}
           {txHash && <p className="mt-1 break-all"><strong>Transaction:</strong> <a className="text-blue-700 underline" href={process.env.NEXT_PUBLIC_STELLAR_EXPLORER + "/tx/" + txHash} target="_blank" rel="noreferrer">{txHash}</a></p>}
         </div>
 
@@ -226,8 +232,8 @@ export default function SetupPage() {
             </label>
           </div>
           <div className="mt-3 flex flex-wrap gap-3">
-            <button disabled={busy || !ruleId || !agentAddress} onClick={transfer} className="rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
-              Attempt transfer with agent signer
+            <button disabled={busy || ruleId === null || !agentAddress || !selectedRef.current} onClick={transfer} className="rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+              {ruleRevoked ? "Verify revoked agent transfer" : "Attempt transfer with agent signer"}
             </button>
             <button disabled={busy || !ruleId} onClick={revokeAgent} className="rounded-md border border-rose-300 px-4 py-2 text-sm font-medium text-rose-700 disabled:opacity-50">
               Revoke agent rule
