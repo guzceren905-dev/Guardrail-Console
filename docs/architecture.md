@@ -14,9 +14,9 @@ The application composes:
 
 The spending cap is a rolling 24-hour USDC window, not a UTC calendar-day reset. Configure amounts in the USDC token's seven-decimal on-chain base units (1 USDC = 10,000,000 units). The policy is attached to the narrow agent context rule for USDC SAC transfer calls. The owner retains a separate administrative authorization path.
 
-## Emergency control
+## Emergency control (owner freeze)
 
-The owner control is an authorization revocation, not a global pause. It removes the agent signer or disables the agent's payment rule while preserving the owner's management and recovery path. The dashboard may display the control state but cannot invoke it.
+The SOW's human-owner freeze override is implemented as an authorization revocation, not a global pause. Freezing removes the agent signer or disables the agent's payment rule while preserving the owner's management and recovery path; unfreezing restores it. The dashboard may display the control state but cannot invoke it.
 
 ## Event index
 

@@ -14,7 +14,7 @@ The ecosystem already contains x402-focused spending-control and dashboard proje
 
 - OpenZeppelin Smart Account Kit configuration for one testnet demo account.
 - Rolling 24-hour USDC spending cap and recipient allowlist.
-- Owner administrative path to revoke the agent's payment authorization.
+- Human-owner freeze override: the owner revokes the agent's payment authorization (removes the agent signer or disables its payment rule) and can restore it.
 - Reusable TypeScript configuration SDK wrapper for applying the same policy pattern.
 - One paid x402 endpoint (Express, @x402/express, @x402/stellar, OZ Channels facilitator).
 - Success and on-chain policy-rejection examples (over-cap and non-allowlisted recipient).
