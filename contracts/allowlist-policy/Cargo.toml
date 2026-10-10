@@ -1,0 +1,29 @@
+[package]
+name = "guardrail-allowlist-policy"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = "26.1.0"
+# Pinned to the commit that smart-account-kit deployed to testnet (protocol 27, 2026-07-09),
+# so ContextRule and Signer types match the deployed smart-account WASM.
+stellar-accounts = { git = "https://github.com/OpenZeppelin/stellar-contracts", rev = "1e513890ecf79833c9d6e7ef38a9358001c0b111" }
+
+[dev-dependencies]
+soroban-sdk = { version = "26.1.0", features = ["testutils"] }
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = 0
+strip = "symbols"
+debug-assertions = false
+panic = "abort"
+codegen-units = 1
+lto = true

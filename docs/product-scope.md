@@ -24,7 +24,7 @@ The ecosystem already contains x402-focused spending-control and dashboard proje
 
 ## Out of scope
 
-- MPP (a possible stretch goal after all SOW gates pass, not a funded deliverable), mainnet deployment, multi-tenant accounts, custom payment protocols, custom spending-policy contracts, custody, signing, and production alert delivery.
+- MPP (a possible stretch goal after all SOW gates pass, not a funded deliverable), mainnet deployment, multi-tenant accounts, custom payment protocols, custom spending-policy contracts other than the recipient allowlist policy (OpenZeppelin ships none), custody, signing, and production alert delivery.
 
 ## Security wording
 

@@ -31,6 +31,6 @@ Copy .env.example to .env.local when beginning RPC integration. Do not add secre
 
 ## Security boundary
 
-The OpenZeppelin smart-account contracts and Smart Account Kit are distinct components. The SDK and this integration are not represented as independently audited. The final evidence must identify exact package versions, deployed WASM hashes, audit scope, and testnet transaction links.
+The OpenZeppelin smart-account contracts and Smart Account Kit are distinct components. The SDK and this integration are not represented as independently audited. The recipient allowlist policy in `contracts/allowlist-policy` is custom code, because OpenZeppelin ships no recipient allowlist policy, and it is not audited. The final evidence must identify exact package versions, deployed WASM hashes, audit scope, and testnet transaction links.
 
 MPP (a possible stretch goal, not a funded deliverable), mainnet, multi-tenant support, custom policy contracts, and custody are out of scope.
