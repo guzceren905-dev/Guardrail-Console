@@ -1,5 +1,7 @@
 # Delivery milestones
 
+Status (2026-10-10): Milestones 1–3 delivered; Milestone 4 delivered except the demo video recording, the Safari/Firefox check and Chapter Lead confirmation of the two deviations. See [evidence.md](evidence.md).
+
 ## Sprint target
 
 Deliver a demonstrable testnet MVP in 30 calendar days, as agreed in the Instawards SOW: 20 engineering days at $250 per day, for a total of $5,000. Dates remain as provided in the SOW and must be confirmed by the program owner separately.

@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit && tsc -p sdk && tsc -p scripts/testnet && tsc -p x402-demo",
     "test:contracts": "cargo test --manifest-path contracts/allowlist-policy/Cargo.toml",
     "test:unit": "node --test sdk/test/unit.test.ts x402-demo/facilitator.test.ts",
-    "test:e2e": "node --env-file-if-exists=.env.local --test --test-concurrency=1 scripts/testnet/e2e.test.ts"
+    "test:e2e": "node --env-file-if-exists=.env.local --test --test-concurrency=1 scripts/testnet/e2e.test.ts",
+    "demo": "node --env-file-if-exists=.env.local scripts/testnet/demo.ts"
   },
   "dependencies": {
     "next": "16.3.8",

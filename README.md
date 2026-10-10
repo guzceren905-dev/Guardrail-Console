@@ -12,7 +12,7 @@ Working on Stellar testnet:
 - **x402 paid API (D2).** Express API in `x402-demo/` that the agent pays from the smart account. Within-policy payments settle; over-cap and non-allowlisted payments are rejected on-chain.
 - **Live dashboard (D3).** Read-only Next.js dashboard showing balance, rolling spend against the cap, a near-cap alert, freeze status and the full payment history from Stellar RPC. Refreshes every 10 seconds.
 
-Live demo: https://guardrail-console.vercel.app (testnet, read-only).
+Live demo: https://guardrail-console.vercel.app (testnet, read-only). Evidence: [docs/evidence.md](docs/evidence.md). Guided demo: `pnpm demo` ([docs/demo-script.md](docs/demo-script.md)).
 
 Addresses and transaction evidence: [docs/spike-notes.md](docs/spike-notes.md). Setup and integration: [docs/setup.md](docs/setup.md).
 
@@ -44,6 +44,8 @@ See `.env.example`. Every dashboard variable is a public address or URL, and the
 - docs/architecture.md
 - docs/milestones.md
 - docs/setup.md
+- docs/evidence.md
+- docs/demo-script.md
 - docs/spike-notes.md
 
 ## Security boundary

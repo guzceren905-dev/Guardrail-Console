@@ -2,11 +2,12 @@
 // Spends ~0.06 USDC of the agent's daily cap and some testnet XLM per run.
 //   node --env-file-if-exists=.env.local --test --test-concurrency=1 scripts/testnet/e2e.test.ts
 import assert from "node:assert/strict";
-import { type ChildProcess, spawn } from "node:child_process";
+import type { ChildProcess } from "node:child_process";
 import { after, before, describe, test } from "node:test";
 import { addr, readContract, GuardrailErrors } from "../../sdk/src/index.ts";
 import { rpc } from "@stellar/stellar-sdk";
 import { decodePaymentResponseHeader, wrapFetchWithPaymentFromConfig } from "@x402/fetch";
+import { startPaidApi } from "../../x402-demo/spawn.ts";
 import { AGENT_RULE_ID, NETWORK, SMART_ACCOUNT, USDC_SAC, USDC_UNIT, address, demoAgent, ed25519Signer, keypair, ownerAccount, usdc } from "./lib.ts";
 
 const owner = ownerAccount();
@@ -109,18 +110,7 @@ describe("owner configuration", () => {
   });
 });
 
-function startServer(port: number, env: Record<string, string>): Promise<ChildProcess> {
-  return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ["x402-demo/server.ts"], {
-      env: { ...process.env, PORT: String(port), REPORT_PRICE: "$0.01", ...env },
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-    let stderr = "";
-    child.stderr!.on("data", (d) => (stderr += d));
-    child.stdout!.on("data", (d) => String(d).includes("Paid API on") && resolve(child));
-    child.on("exit", (code) => reject(new Error(`server exited (${code}): ${stderr}`)));
-  });
-}
+const startServer = (port: number, env: Record<string, string>) => startPaidApi(port, { REPORT_PRICE: "$0.01", ...env });
 
 function x402Fetch(skipLocalPolicyCheck = false) {
   return wrapFetchWithPaymentFromConfig(fetch, {

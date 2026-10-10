@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["*.ts", "../../sdk/src/*.ts"]
+  "include": ["*.ts", "../../sdk/src/*.ts", "../../x402-demo/*.ts"]
 }
