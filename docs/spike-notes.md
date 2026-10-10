@@ -100,6 +100,19 @@ Findings:
   - `/api/premium-report` and `/api/partner-report` with `--skip-local-check`: rejected, `invalid_exact_stellar_payload_simulation_failed` (the policies reject in simulation).
   - The fee cap did not trigger first. In the stock facilitator the fee check runs before the event check, so OZ Channels likely accepts the ~0.029 XLM fee. Inferred, not confirmed.
 
+- **Upstream issues (opened 2026-10-10):** [x402-foundation/x402#3764](https://github.com/x402-foundation/x402/issues/3764), [OpenZeppelin/relayer-plugin-x402-facilitator#53](https://github.com/OpenZeppelin/relayer-plugin-x402-facilitator/issues/53).
+
+## 8. Test coverage (Weeks 1–2)
+
+| Suite | Command | Covers |
+|---|---|---|
+| Rust unit (10) | `pnpm test:contracts` | Allowlist policy: allow, reject, no signer, non-transfer, rule type, install twice, empty/duplicate lists, update, uninstall |
+| Rust integration (15) | `pnpm test:contracts` | Both policies inside a real OZ smart account via `__check_auth`: cap per payment and cumulative, batched auth, rolling window reset, rejected payment not counted, allowlist update, freeze/unfreeze keeping history, agent cannot use the owner rule, call other contracts, call non-transfer functions or change its own rule/allowlist |
+| TS unit (16) | `pnpm test:unit` | Auth-entry signing (V1 and V2 credentials) verified against the contract digest, rule-id binding, encoding order, spend-window math, error parsing, facilitator event check (policy events allowed, side transfers/mint/burn/clawback rejected) |
+| Testnet e2e (13) | `pnpm test:e2e` | Direct payments (allowed, non-allowlisted, over cap, on-chain failed tx), owner allowlist and cap updates, freeze/unfreeze, x402 through the self-hosted facilitator (settle, agent refusal, facilitator rejection, frozen agent) and OZ Channels (known upstream rejection) |
+
+Mutation check: breaking the allowlist check fails 5 tests; removing the signer check fails 1.
+
 ## Decisions needed
 
 1. Chapter Lead approval for the custom allowlist policy (section 2).

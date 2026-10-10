@@ -16,13 +16,17 @@ The spending cap is a rolling 24-hour USDC window, not a UTC calendar-day reset.
 
 ## Emergency control (owner freeze)
 
-The SOW's human-owner freeze override is implemented as an authorization revocation, not a global pause. Freezing removes the agent signer or disables the agent's payment rule while preserving the owner's management and recovery path; unfreezing restores it. The dashboard may display the control state but cannot invoke it.
+The SOW's human-owner freeze override is implemented as an authorization revocation, not a global pause. Freezing removes the agent signer from its context rule (the rule, its policies and the spend history stay) while preserving the owner's management and recovery path; unfreezing restores it. The dashboard may display the control state but cannot invoke it.
 
 ## Event index
 
-The server reads Soroban events from Stellar RPC, persists a paging cursor (ledger and event cursor), and de-duplicates confirmed events by transaction hash and event index. It calculates rolling spend from confirmed events in the active 24-hour window. UI refresh target: 10 seconds.
+The dashboard server (`src/lib/indexer.ts`) reads two event streams from Stellar RPC: USDC `transfer` events from and to the smart account, and the spending-limit policy's `spending_limit_enforced` events. It pages with the RPC cursor and de-duplicates by event id. A transfer counts as an agent payment when its transaction also carries the policy event; otherwise it was authorized by the owner rule. Agent payments are labeled x402 when the transaction source is a configured facilitator fee payer, and direct otherwise.
 
-Failed request or settlement attempts are stored separately by the demo service, clearly labeled as off-chain attempts, and excluded from confirmed spend. The dashboard links only confirmed transactions to Stellar Expert.
+Failed on-chain attempts come from Horizon (failed transactions of the configured agent fee payers), with the contract error code read from the transaction's diagnostic events. They are labeled "Blocked" and never count as spend. Payments that a policy rejects in simulation never reach the chain and are not shown.
+
+Rolling spend and the remaining budget come from the spending-limit policy's own state, using its eviction rule. The dashboard also sums indexed agent payments in the same window and shows whether the two totals match. Every row links to Stellar Expert. The UI refreshes every 10 seconds.
+
+The cursor and index live in server memory. After a restart the index backfills from `INDEX_START_LEDGER`, limited to the RPC retention window (about 7 days on testnet), so older history needs a persistent store or an archive RPC.
 
 ## Runtime configuration
 

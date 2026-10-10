@@ -30,6 +30,6 @@ The ecosystem already contains x402-focused spending-control and dashboard proje
 
 OpenZeppelin smart-account contracts and the TypeScript Smart Account Kit are separate components. Claims about audited code must name the exact contract release and audit scope. The SDK and application integration are not described as independently audited. Record package versions, deployed contract addresses, and WASM hashes in the final evidence.
 
-## Preview status
+## Status
 
-The current dashboard is explicitly marked as a preview and uses sample values. It is not connected to Stellar RPC and does not show live balances, policies, or transaction events.
+The dashboard reads live testnet data: the smart account's USDC balance, the agent rule's policy state, and its activity from Stellar RPC events and failed agent transactions. Sample data has been removed.

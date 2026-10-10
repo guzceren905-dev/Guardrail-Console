@@ -17,6 +17,9 @@ const NETWORK = "stellar:testnet" as const;
 const PORT = Number(process.env.PORT ?? 4021);
 const MERCHANT = process.env.MERCHANT_ADDRESS ?? address("gc-merchant"); // allowlisted
 const PARTNER = process.env.PARTNER_ADDRESS ?? address("gc-stranger"); // not allowlisted
+// Prices are overridable so automated tests don't burn the daily cap.
+const REPORT_PRICE = process.env.REPORT_PRICE ?? "$1.00";
+const PREMIUM_PRICE = process.env.PREMIUM_PRICE ?? "$15.00"; // above the 10 USDC cap
 
 function facilitatorClient(): { client: FacilitatorClient; label: string } {
   if (process.env.FACILITATOR === "oz-channels") {
@@ -46,11 +49,11 @@ app.use(
   paymentMiddleware(
     {
       // Within policy: allowlisted recipient, under the 10 USDC daily cap.
-      "GET /api/report": route("$1.00", MERCHANT, "Market report"),
+      "GET /api/report": route(REPORT_PRICE, MERCHANT, "Market report"),
       // Over the daily cap.
-      "GET /api/premium-report": route("$15.00", MERCHANT, "Premium market report"),
+      "GET /api/premium-report": route(PREMIUM_PRICE, MERCHANT, "Premium market report"),
       // Recipient not on the agent's allowlist.
-      "GET /api/partner-report": route("$1.00", PARTNER, "Partner market report"),
+      "GET /api/partner-report": route(REPORT_PRICE, PARTNER, "Partner market report"),
     },
     resourceServer,
   ),

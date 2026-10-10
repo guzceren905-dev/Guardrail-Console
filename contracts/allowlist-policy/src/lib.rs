@@ -21,6 +21,8 @@ use stellar_accounts::{
 };
 
 #[cfg(test)]
+mod integration_test;
+#[cfg(test)]
 mod test;
 
 const DAY_IN_LEDGERS: u32 = 17280;

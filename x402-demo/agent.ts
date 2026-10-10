@@ -3,8 +3,7 @@
 // --skip-local-check sends the payment even if local simulation shows the
 // policy rejects it, so the facilitator's rejection can be observed.
 import { decodePaymentResponseHeader, wrapFetchWithPaymentFromConfig } from "@x402/fetch";
-import { AGENT_RULE_ID, SMART_ACCOUNT, ed25519Signer, explorerTx } from "../scripts/testnet/lib.ts";
-import { SmartAccountExactStellarScheme } from "./smart-account-scheme.ts";
+import { demoAgent, explorerTx } from "../scripts/testnet/lib.ts";
 
 const path = process.argv[2];
 if (!path) {
@@ -12,12 +11,7 @@ if (!path) {
   process.exit(1);
 }
 const baseUrl = process.env.API_URL ?? `http://localhost:${process.env.PORT ?? 4021}`;
-const scheme = new SmartAccountExactStellarScheme(
-  SMART_ACCOUNT,
-  ed25519Signer("gc-agent"),
-  [AGENT_RULE_ID],
-  process.argv.includes("--skip-local-check"),
-);
+const scheme = demoAgent().x402Scheme({ skipLocalPolicyCheck: process.argv.includes("--skip-local-check") });
 const fetchWithPayment = wrapFetchWithPaymentFromConfig(fetch, {
   schemes: [{ network: "stellar:testnet", client: scheme }],
   // The x402 client's own spend controls are off on purpose: in this demo the
