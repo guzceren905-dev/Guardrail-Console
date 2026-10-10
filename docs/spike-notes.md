@@ -88,16 +88,20 @@ Findings:
 - **Client:** the stock `ExactStellarScheme` client cannot sign for an OZ smart account. `SmartAccountExactStellarScheme` builds the same payload (transfer tx + signed auth entry). The x402 client's own `spendControls` are disabled so the on-chain policies are the guard.
 - **Fee cap:** a smart-account USDC payment costs ~290,710 stroops in resource fees (~3.7M instructions; check_auth + Ed25519 verifier + two policies, plus the spend-history write). The x402 Stellar facilitator default cap is 50,000 stroops and rejects it (`invalid_exact_stellar_payload_fee_exceeds_maximum`). The spend-history write grows with the number of payments in the window, so the fee grows too.
 - **Blocker — event check:** the x402 Stellar facilitator rejects any simulated contract event other than the single asset `transfer` (`invalid_exact_stellar_payload_event_not_transfer`). OZ's spending-limit policy always emits `spending_limit_enforced`. So the stock facilitator cannot settle payments from an OZ smart account that uses the spending-limit policy. The allowlist policy emits no event on `enforce` and is not affected.
-- **Experiment:** with the fee cap raised and the event check limited to events from the asset contract (local facilitator, not committed), the full flow works:
-  - `/api/report` ($1, allowlisted): HTTP 200, settled on-chain [457dbd10…](https://stellar.expert/explorer/testnet/tx/457dbd10512e74d06b45f34f08d771e2c4f99f06c4359ac413d8f3509f416eb7)
+- **Decision (2026-10-10): option A.** Self-host the facilitator (`x402-demo/facilitator.ts`) with the fee cap raised to 0.1 XLM and a narrowed event check. Balance-changing events (`transfer`, `mint`, `burn`, `clawback`) from any contract are still rejected; other events from non-asset contracts, such as policy events, are allowed. Propose the same change upstream to x402 and to OZ's facilitator plugin. This is a SOW deviation (OZ Channels named as facilitator) to report to the Chapter Lead. OZ Channels remains selectable with `FACILITATOR=oz-channels`.
+- **Results with the self-hosted facilitator:**
+  - `/api/report` ($1, allowlisted): HTTP 200, settled on-chain [0302568f…](https://stellar.expert/explorer/testnet/tx/0302568f8ae419b263d06d95f51727fe3f399ec883630db3ee2aa6f7eec2fabb)
   - `/api/premium-report` ($15, over cap): agent refuses, `#3221`
   - `/api/partner-report` ($1, non-allowlisted): agent refuses, `#3303`
-  - `/api/premium-report --skip-local-check`: facilitator rejects, `invalid_exact_stellar_payload_simulation_failed`
+  - Both with `--skip-local-check`: facilitator rejects, `invalid_exact_stellar_payload_simulation_failed`
 - No other blockers: auth-entry structure, sub-invocation check and signature checks pass.
-- **Not yet tested: OZ Channels.** It is a separate facilitator implementation, so its event check and fee cap may differ. Requires an OZ Channels testnet API key (web form, cannot be scripted).
+- **OZ Channels (tested 2026-10-10, `https://channels.openzeppelin.com/x402/testnet`):** same result as the stock facilitator.
+  - `/api/report` (within policy): rejected, `invalid_exact_stellar_payload_event_not_transfer`. OZ Channels cannot settle payments from an OZ smart account with the spending-limit policy.
+  - `/api/premium-report` and `/api/partner-report` with `--skip-local-check`: rejected, `invalid_exact_stellar_payload_simulation_failed` (the policies reject in simulation).
+  - The fee cap did not trigger first. In the stock facilitator the fee check runs before the event check, so OZ Channels likely accepts the ~0.029 XLM fee. Inferred, not confirmed.
 
 ## Decisions needed
 
 1. Chapter Lead approval for the custom allowlist policy (section 2).
 2. Acceptance of the custom x402 client mechanism (section 4).
-3. How to settle through a facilitator given the event check (section 7), after testing OZ Channels.
+3. Chapter Lead approval for the self-hosted facilitator (section 7); upstream issues to x402 and OZ.

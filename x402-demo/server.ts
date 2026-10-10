@@ -1,18 +1,17 @@
 // Demo paid API (Express + x402) on stellar:testnet.
 //
-// Facilitator: OZ Channels when OZ_API_KEY is set, otherwise a local in-process
-// facilitator running @x402/stellar's facilitator scheme (dev only), with fees
-// paid by the `gc-facilitator` testnet identity.
+// Facilitator: self-hosted by default (see facilitator.ts), with fees paid by
+// the `gc-facilitator` testnet identity. Set FACILITATOR=oz-channels (and
+// OZ_API_KEY) to use OZ Channels, which currently rejects smart-account
+// payments that use OZ's spending-limit policy (docs/spike-notes.md, section 7).
 //
 //   node --env-file-if-exists=.env.local x402-demo/server.ts
 import express from "express";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
 import { HTTPFacilitatorClient, type FacilitatorClient } from "@x402/core/server";
-import { x402Facilitator } from "@x402/core/facilitator";
-import { createEd25519Signer } from "@x402/stellar";
 import { ExactStellarScheme as ExactStellarServer } from "@x402/stellar/exact/server";
-import { ExactStellarScheme as ExactStellarFacilitator } from "@x402/stellar/exact/facilitator";
 import { address, keypair } from "../scripts/testnet/lib.ts";
+import { selfHostedFacilitator } from "./facilitator.ts";
 
 const NETWORK = "stellar:testnet" as const;
 const PORT = Number(process.env.PORT ?? 4021);
@@ -20,7 +19,8 @@ const MERCHANT = process.env.MERCHANT_ADDRESS ?? address("gc-merchant"); // allo
 const PARTNER = process.env.PARTNER_ADDRESS ?? address("gc-stranger"); // not allowlisted
 
 function facilitatorClient(): { client: FacilitatorClient; label: string } {
-  if (process.env.OZ_API_KEY) {
+  if (process.env.FACILITATOR === "oz-channels") {
+    if (!process.env.OZ_API_KEY) throw new Error("FACILITATOR=oz-channels requires OZ_API_KEY");
     const auth = { Authorization: `Bearer ${process.env.OZ_API_KEY}` };
     return {
       label: "OZ Channels",
@@ -30,19 +30,7 @@ function facilitatorClient(): { client: FacilitatorClient; label: string } {
       }),
     };
   }
-  const signer = createEd25519Signer(keypair("gc-facilitator").secret(), NETWORK);
-  // A smart-account payment (check_auth + verifier + two policies) costs ~0.03 XLM
-  // in resource fees, above the scheme's 0.005 XLM default cap.
-  const scheme = new ExactStellarFacilitator([signer], { maxTransactionFeeStroops: 1_000_000 });
-  const local = new x402Facilitator().register(NETWORK, scheme);
-  return {
-    label: "local (dev only)",
-    client: {
-      verify: (payload, requirements) => local.verify(payload, requirements),
-      settle: (payload, requirements) => local.settle(payload, requirements),
-      getSupported: async () => local.getSupported() as Awaited<ReturnType<FacilitatorClient["getSupported"]>>,
-    },
-  };
+  return { label: "self-hosted", client: selfHostedFacilitator(NETWORK, keypair("gc-facilitator").secret()) };
 }
 
 const { client, label } = facilitatorClient();
