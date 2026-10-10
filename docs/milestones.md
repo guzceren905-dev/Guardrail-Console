@@ -1,6 +1,6 @@
 # Delivery milestones
 
-Status (2026-10-10): Milestones 1–3 delivered; Milestone 4 delivered except the demo video recording, the Safari/Firefox check and Chapter Lead confirmation of the two deviations. See [evidence.md](evidence.md).
+Status (2026-10-10): Milestones 1–3 delivered; Milestone 4 delivered except the demo video recording and Chapter Lead confirmation of the deviations. See [evidence.md](evidence.md).
 
 ## Sprint target
 

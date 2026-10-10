@@ -47,7 +47,7 @@ Error codes come from the failed transactions' diagnostic events. Code: [`x402-d
 - URL: https://guardrail-console.vercel.app (no login, no wallet, no keys)
 - Shows the smart account's USDC balance, rolling spend vs the cap (Recharts), remaining budget, near-cap / cap-reached / frozen alerts, the allowlist, and the full payment history (x402, direct, blocked, deposits) with Stellar Expert links. Refreshes every 10 seconds.
 - Reconciliation: the dashboard compares indexed agent payments in the window with the spending-limit policy's own total and shows "Reconciled with policy" when they match (they matched at every check on 2026-10-10).
-- Verified in Chromium at desktop and 375 px mobile width. _Safari/Firefox check: pending._
+- Cross-browser check (2026-10-10): Chromium at desktop and 375 px mobile width (automated); Safari and Firefox (manual).
 - x402 only. MPP is not implemented (see deviations).
 
 ## SOW 6.2 — verification checklist (for the Chapter Lead)
