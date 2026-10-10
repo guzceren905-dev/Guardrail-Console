@@ -34,6 +34,11 @@ export function keypair(identity: string): Keypair {
   return Keypair.fromSecret(secret);
 }
 
+/** Public address of a Stellar CLI identity. */
+export function address(identity: string): string {
+  return execFileSync("stellar", ["keys", "address", identity], { encoding: "utf8" }).trim();
+}
+
 export function ed25519Signer(identity: string): Ed25519Signer {
   return new Ed25519Signer(keypair(identity), ED25519_VERIFIER);
 }
@@ -104,6 +109,53 @@ export function signSmartAccountEntries(
 export type InvokeResult = { hash: string; status: string; error?: string };
 
 /**
+ * Builds a single invokeContractFunction transaction whose auth comes from the
+ * smart account, signs the smart-account auth entries, and re-simulates.
+ *   1. Recording-mode simulation discovers the auth entries (no __check_auth).
+ *   2. Enforcing simulation with signed entries runs __check_auth and the policies.
+ * Returns both simulations and the transaction carrying the signed entries.
+ */
+export async function simulateSignedInvocation(opts: {
+  source: Account;
+  contract: string;
+  method: string;
+  args: xdr.ScVal[];
+  signer: Ed25519Signer;
+  contextRuleIds: number[];
+  expirationLedger?: number;
+  /** Inclusion fee in stroops; the resource fee is added on assembly. */
+  baseFee?: string;
+}) {
+  // A fresh Account per build: TransactionBuilder increments the sequence it is given.
+  const build = (auth: xdr.SorobanAuthorizationEntry[] = []) =>
+    new TransactionBuilder(new Account(opts.source.accountId(), opts.source.sequenceNumber()), { fee: opts.baseFee ?? "10000000", networkPassphrase: NETWORK_PASSPHRASE })
+      .addOperation(
+        Operation.invokeContractFunction({
+          contract: opts.contract,
+          function: opts.method,
+          args: opts.args,
+          auth,
+        }),
+      )
+      .setTimeout(120)
+      .build();
+
+  const recording = await server.simulateTransaction(build());
+  if (!rpc.Api.isSimulationSuccess(recording)) {
+    throw new Error(`Recording simulation failed: ${(recording as rpc.Api.SimulateTransactionErrorResponse).error}`);
+  }
+  const signed = signSmartAccountEntries(
+    recording.result!.auth,
+    opts.signer,
+    opts.contextRuleIds,
+    opts.expirationLedger ?? recording.latestLedger + 60,
+  );
+  const unsigned = build(signed);
+  const enforcing = await server.simulateTransaction(unsigned);
+  return { recording, unsigned, enforcing };
+}
+
+/**
  * Invokes a contract function whose auth comes from the smart account.
  * `feeSource` pays fees and sequence; `signer` signs the smart-account auth.
  *
@@ -123,37 +175,8 @@ export async function invokeAsSmartAccount(opts: {
   forceWithReferenceArgs?: xdr.ScVal[];
 }): Promise<InvokeResult> {
   const source = await server.getAccount(opts.feeSource.publicKey());
-  // A fresh Account per build: TransactionBuilder increments the sequence it is given.
-  const build = (args: xdr.ScVal[], auth: xdr.SorobanAuthorizationEntry[] = []) =>
-    new TransactionBuilder(new Account(source.accountId(), source.sequenceNumber()), { fee: "10000000", networkPassphrase: NETWORK_PASSPHRASE })
-      .addOperation(
-        Operation.invokeContractFunction({
-          contract: opts.contract,
-          function: opts.method,
-          args,
-          auth,
-        }),
-      )
-      .setTimeout(120)
-      .build();
-
-  // 1. Recording-mode simulation discovers the auth entries (no __check_auth).
-  // 2. Enforcing simulation with signed entries runs __check_auth and the policies.
-  const simulateSigned = async (args: xdr.ScVal[]) => {
-    const recording = await server.simulateTransaction(build(args));
-    if (!rpc.Api.isSimulationSuccess(recording)) {
-      throw new Error(`Recording simulation failed: ${(recording as rpc.Api.SimulateTransactionErrorResponse).error}`);
-    }
-    const signed = signSmartAccountEntries(
-      recording.result!.auth,
-      opts.signer,
-      opts.contextRuleIds,
-      recording.latestLedger + 60,
-    );
-    const unsigned = build(args, signed);
-    const enforcing = await server.simulateTransaction(unsigned);
-    return { recording, unsigned, enforcing };
-  };
+  const simulateSigned = (args: xdr.ScVal[]) =>
+    simulateSignedInvocation({ ...opts, source: new Account(source.accountId(), source.sequenceNumber()), args });
 
   const { recording, unsigned, enforcing } = await simulateSigned(opts.args);
   let tx;
