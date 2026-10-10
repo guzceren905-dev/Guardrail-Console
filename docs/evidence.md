@@ -4,7 +4,7 @@ Instawards SOW (2026.08.11): Guardrail Console. Stellar testnet. Collected 2026-
 
 - Repository: https://github.com/guzceren905-dev/Guardrail-Console (MIT license)
 - Live dashboard: https://guardrail-console.vercel.app
-- Demo video: _to be added (recording guide: [demo-script.md](demo-script.md))_
+- Demo video: https://youtu.be/KkSlOZQgZTY (2:40, AI-narrated; recording method: [demo-script.md](demo-script.md))
 
 ## SOW 6.1 — evidence per deliverable
 
@@ -56,7 +56,7 @@ Error codes come from the failed transactions' diagnostic events. Code: [`x402-d
 |---|---|---|
 | D1 | Smart account + policies on Stellar Expert, SDK in repo | Deliverable 1 table |
 | D2 | ≥1 successful x402 payment, ≥1 on-chain rejection for cap and for allowlist | Deliverable 2 table |
-| D3 | Public dashboard with real testnet data, demo video | URL above; video pending |
+| D3 | Public dashboard with real testnet data, demo video | URL and video above |
 
 ## Build provenance
 
