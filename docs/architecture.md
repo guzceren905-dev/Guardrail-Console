@@ -8,7 +8,6 @@ The application composes:
 - OpenZeppelin Stellar smart-account contracts and standard spending-limit policy.
 - Smart Account Kit for typed account, signer, context-rule, and policy configuration.
 - Official x402 Stellar client/server packages for x402 negotiation and settlement.
-- Official Stellar MPP Charge SDK for one-request settlement.
 - Stellar RPC for contract state and Soroban event reads.
 
 ## Payment policy
