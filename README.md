@@ -12,6 +12,8 @@ Working on Stellar testnet:
 - **x402 paid API (D2).** Express API in `x402-demo/` that the agent pays from the smart account. Within-policy payments settle; over-cap and non-allowlisted payments are rejected on-chain.
 - **Live dashboard (D3).** Read-only Next.js dashboard showing balance, rolling spend against the cap, a near-cap alert, freeze status and the full payment history from Stellar RPC. Refreshes every 10 seconds.
 
+Live demo: https://guardrail-console.vercel.app (testnet, read-only).
+
 Addresses and transaction evidence: [docs/spike-notes.md](docs/spike-notes.md). Setup and integration: [docs/setup.md](docs/setup.md).
 
 The ecosystem already has x402 spending-control projects. This project's focused differentiator is an owner-facing monitor for a policy-gated smart account that pays via x402, built by composing official protocol packages and OpenZeppelin policy primitives rather than creating a new authorization or settlement layer.
