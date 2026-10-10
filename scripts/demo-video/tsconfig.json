@@ -1,0 +1,4 @@
+{
+  "extends": "../testnet/tsconfig.json",
+  "include": ["*.ts"]
+}

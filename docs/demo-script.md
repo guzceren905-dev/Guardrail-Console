@@ -28,6 +28,17 @@ The script pauses before each step; press Enter when the narration is done. Afte
 
 Close on the dashboard's **Reconciled with policy** badge: the dashboard's totals match the policy's own on-chain state.
 
+## Automated recording (macOS)
+
+`scripts/demo-video/record.ts` records the same demo without a human: narration with macOS `say`, a clean Chrome profile for the dashboard (no bookmarks or tabs), Terminal on the right, other Terminal windows minimized while recording, and the menu bar and Dock cropped out. `tighten.ts` then speeds up the waits for confirmations and dashboard refresh (4×) and crops the window title bars.
+
+```bash
+node scripts/demo-video/record.ts ~/guardrail-demo/raw.mp4
+node scripts/demo-video/tighten.ts ~/guardrail-demo/raw.mp4 ~/guardrail-demo/guardrail-console-demo.mp4
+```
+
+Requirements: Screen Recording permission for the app that runs the script, permission to control Terminal, Google Chrome, and ffmpeg (`brew install ffmpeg`). Narration text lives in `scripts/demo-video/cues.ts`. Each run spends `REPORT_PRICE` from the daily cap.
+
 ## After recording
 
 Upload the video and add its link to [evidence.md](evidence.md) (top of the file).
