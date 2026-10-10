@@ -4,11 +4,11 @@
 import assert from "node:assert/strict";
 import type { ChildProcess } from "node:child_process";
 import { after, before, describe, test } from "node:test";
-import { addr, readContract, GuardrailErrors } from "../../sdk/src/index.ts";
+import { GuardrailAccount, GuardrailErrors, addr, readContract } from "../../sdk/src/index.ts";
 import { rpc } from "@stellar/stellar-sdk";
 import { decodePaymentResponseHeader, wrapFetchWithPaymentFromConfig } from "@x402/fetch";
 import { startPaidApi } from "../../x402-demo/spawn.ts";
-import { AGENT_RULE_ID, NETWORK, SMART_ACCOUNT, USDC_SAC, USDC_UNIT, address, demoAgent, ed25519Signer, keypair, ownerAccount, usdc } from "./lib.ts";
+import { AGENT_RULE_ID, ALLOWLIST_POLICY, NETWORK, SMART_ACCOUNT, SPENDING_LIMIT_POLICY, USDC_SAC, USDC_UNIT, address, demoAgent, ed25519Signer, keypair, ownerAccount, usdc } from "./lib.ts";
 
 const owner = ownerAccount();
 const agent = demoAgent();
@@ -32,6 +32,33 @@ after(async () => {
   if (status.frozen) await owner.unfreezeAgent(AGENT_RULE_ID, ed25519Signer("gc-agent"));
   if (status.recipients.length !== 1 || status.recipients[0] !== MERCHANT) await owner.setAllowlist(AGENT_RULE_ID, [MERCHANT]);
   if (status.dailyCap !== CAP) await owner.setDailyCap(AGENT_RULE_ID, CAP);
+});
+
+describe("SDK: create and configure a new smart account", () => {
+  test("deploys an OZ smart account and installs the agent rule with both policies", async () => {
+    const ownerSigner = ed25519Signer("gc-owner");
+    const { smartAccount, hash } = await GuardrailAccount.createSmartAccount({ network: NETWORK, deployer: keypair("gc-owner"), owner: ownerSigner });
+    assert.match(smartAccount, /^C[A-Z2-7]{55}$/);
+    assert.equal(await onChainStatus(hash), "SUCCESS");
+
+    const account = new GuardrailAccount({
+      network: NETWORK,
+      smartAccount,
+      policies: { spendingLimit: SPENDING_LIMIT_POLICY, allowlist: ALLOWLIST_POLICY },
+      feeSource: keypair("gc-owner"),
+      owner: ownerSigner,
+    });
+    const ownerRule = await account.getRule(0);
+    assert.equal(ownerRule.signer_ids.length, 1);
+    assert.equal(ownerRule.policies.length, 0);
+
+    const { ruleId } = await account.addAgentRule({ token: USDC_SAC, agent: ed25519Signer("gc-agent"), dailyCap: 5n * USDC_UNIT, recipients: [MERCHANT] });
+    const status = await account.getAgentStatus(ruleId);
+    assert.equal(status.frozen, false);
+    assert.equal(status.dailyCap, 5n * USDC_UNIT);
+    assert.equal(status.spentInWindow, 0n);
+    assert.deepEqual(status.recipients, [MERCHANT]);
+  });
 });
 
 describe("agent payments (direct)", () => {

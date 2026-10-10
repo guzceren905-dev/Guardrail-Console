@@ -43,12 +43,21 @@ import { Keypair } from "@stellar/stellar-sdk";
 import { Ed25519Signer } from "smart-account-kit";
 import { GuardrailAccount, GuardrailAgent, TESTNET } from "./sdk/src/index.ts";
 
+// 1. Create the smart account (OZ smart-account WASM uploaded by smart-account-kit).
+const ownerSigner = new Ed25519Signer(Keypair.fromSecret(process.env.OWNER_SECRET!), ED25519_VERIFIER);
+const { smartAccount } = await GuardrailAccount.createSmartAccount({
+  network: TESTNET,
+  deployer: Keypair.fromSecret(process.env.OWNER_SECRET!),
+  owner: ownerSigner,                             // owner rule 0: Default, no policies
+});
+
+// 2. Configure the agent.
 const owner = new GuardrailAccount({
   network: TESTNET,
-  smartAccount: "C...",                           // OZ smart account
+  smartAccount,
   policies: { spendingLimit: "C...", allowlist: "C..." },
   feeSource: Keypair.fromSecret(process.env.OWNER_SECRET!),
-  owner: new Ed25519Signer(Keypair.fromSecret(process.env.OWNER_SECRET!), ED25519_VERIFIER),
+  owner: ownerSigner,
 });
 
 const { ruleId } = await owner.addAgentRule({
@@ -113,7 +122,7 @@ pnpm test:unit        # TypeScript: SDK signing/encoding, facilitator event chec
 pnpm test:e2e         # live testnet: payments, owner config, freeze, x402 (self-hosted and OZ Channels)
 ```
 
-`test:e2e` spends about 0.06 USDC of the daily cap and some testnet XLM per run. It restores the allowlist, cap and freeze state when it finishes.
+`test:e2e` also deploys a fresh smart account through the SDK on every run. It spends about 0.06 USDC of the daily cap and some testnet XLM per run. It restores the allowlist, cap and freeze state when it finishes.
 
 ## Limitations
 

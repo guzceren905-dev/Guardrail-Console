@@ -2,7 +2,7 @@
 
 Instawards SOW (2026.08.11): Guardrail Console. Stellar testnet. Collected 2026-10-10.
 
-- Repository: https://github.com/guzceren905-dev/Guardrail-Console
+- Repository: https://github.com/guzceren905-dev/Guardrail-Console (MIT license)
 - Live dashboard: https://guardrail-console.vercel.app
 - Demo video: _to be added (recording guide: [demo-script.md](demo-script.md))_
 
@@ -18,7 +18,7 @@ Instawards SOW (2026.08.11): Guardrail Console. Stellar testnet. Collected 2026-
 | OZ spending-limit policy | [`CABXBYJN…TIP5G`](https://stellar.expert/explorer/testnet/contract/CABXBYJNZ7IUW4G3D6BND5YCAQF3ASSDMDAOKQQ63UYFSO7WUU2TIP5G) |
 | Recipient allowlist policy (custom) | [`CBJTSJ7M…6HOQU`](https://stellar.expert/explorer/testnet/contract/CBJTSJ7M6BUIKZNNHLOPDNID6RBASIJRAM3AHDYPHIN56HKO5QX6HOQU), deployed in [b6559ca3…](https://stellar.expert/explorer/testnet/tx/b6559ca301e774353da93041f4eadc89ab538ef72efa15e21654ebdde43466e2) |
 | Owner freeze / unfreeze | [88ca99bb…](https://stellar.expert/explorer/testnet/tx/88ca99bb410de5f279f10b30c5aeba4268c01f2328ddb71584cfad2fad3aef28) / [c0d260b0…](https://stellar.expert/explorer/testnet/tx/c0d260b045168df419b5e283c4562ef65631735920a34e516f628b75e442abc6) |
-| Configuration SDK | [`sdk/`](../sdk/src/index.ts): `GuardrailAccount` (add agent rule, set cap, set allowlist, freeze, unfreeze, status), `GuardrailAgent` |
+| Configuration SDK | [`sdk/`](../sdk/src/index.ts): `GuardrailAccount` (create smart account, add agent rule, set cap, set allowlist, freeze, unfreeze, status), `GuardrailAgent` (payments, x402 scheme). The e2e suite creates and configures a fresh account through the SDK on every run. |
 | Configuration docs | [setup.md](setup.md) |
 
 Configuration on-chain:
@@ -35,6 +35,11 @@ Configuration on-chain:
 | Frozen agent | Rejected in simulation, `#3016 UnauthorizedSigner` | none: the transaction never reaches the ledger |
 | Over-cap / non-allowlisted via x402 | Agent refuses; if forced, the facilitator rejects (`simulation_failed`) | none: off-chain |
 
+**How to read the rejection evidence.** The policy check is the same contract code in every path, but where it fires differs:
+
+- **x402 path:** a policy-violating payment never reaches the ledger. The agent simulates the payment and refuses. If the agent skips that check, the facilitator's simulation runs the same policy and refuses to settle (`invalid_exact_stellar_payload_simulation_failed`). So the x402 path produces no failed transaction hash.
+- **On-chain path:** the `FAILED` transactions above were submitted directly to Stellar by the agent's key (`agent.pay({ recordRejection })`), bypassing simulation, to show that the ledger itself rejects the payment. They are not x402 settlements.
+
 Error codes come from the failed transactions' diagnostic events. Code: [`x402-demo/`](../x402-demo/), agent scheme in [`sdk/src/agent.ts`](../sdk/src/agent.ts).
 
 ### Deliverable 3 — Live read-only dashboard
@@ -43,6 +48,7 @@ Error codes come from the failed transactions' diagnostic events. Code: [`x402-d
 - Shows the smart account's USDC balance, rolling spend vs the cap (Recharts), remaining budget, near-cap / cap-reached / frozen alerts, the allowlist, and the full payment history (x402, direct, blocked, deposits) with Stellar Expert links. Refreshes every 10 seconds.
 - Reconciliation: the dashboard compares indexed agent payments in the window with the spending-limit policy's own total and shows "Reconciled with policy" when they match (they matched at every check on 2026-10-10).
 - Verified in Chromium at desktop and 375 px mobile width. _Safari/Firefox check: pending._
+- x402 only. MPP is not implemented (see deviations).
 
 ## SOW 6.2 — verification checklist (for the Chapter Lead)
 
@@ -71,13 +77,14 @@ Package versions: `@stellar/stellar-sdk` 16.3.0, `smart-account-kit` 0.8.0, `@x4
   - The `examples/multisig-smart-account/*` wrapper contracts (thin wrappers around the audited library) are outside the audit tree.
   - The custom allowlist policy (`contracts/allowlist-policy`).
   - smart-account-kit, the Guardrail SDK, the x402 demo, the self-hosted facilitator change, and the dashboard.
-- Tests in this repo: 25 Rust (unit + integration with an OZ smart account), 16 TypeScript unit, 13 live testnet end-to-end ([spike-notes.md](spike-notes.md), section 8).
+- Tests in this repo: 25 Rust (unit + integration with an OZ smart account), 16 TypeScript unit, 14 live testnet end-to-end ([spike-notes.md](spike-notes.md), section 8).
 
 ## Deviations from the SOW
 
 1. **Custom recipient allowlist policy.** OpenZeppelin ships no recipient-allowlist policy, so the allowlist uses one small custom policy implementing OZ's `Policy` trait. _Chapter Lead confirmation: pending._
 2. **Self-hosted facilitator instead of OZ Channels.** OZ Channels and the reference x402 facilitator reject every payment from an OZ smart account that uses the spending-limit policy (event check). The demo uses the reference facilitator with a narrowed event check. Reported upstream: [x402-foundation/x402#3764](https://github.com/x402-foundation/x402/issues/3764), [OpenZeppelin/relayer-plugin-x402-facilitator#53](https://github.com/OpenZeppelin/relayer-plugin-x402-facilitator/issues/53). Switching back is a config change (`FACILITATOR=oz-channels`). _Chapter Lead confirmation: pending._
-3. **Freeze = signer removal.** The SOW's "freeze/pause override" is the owner removing the agent signer from its rule (no global pause exists in OZ smart accounts).
+3. **x402 only, no MPP.** The SOW objective and D3 mention "x402/MPP" history; D2 and the budget cover x402 only. MPP is not implemented. The dashboard's activity model is protocol-neutral, so an MPP rail can be added later. _Chapter Lead confirmation: pending._
+4. **Freeze = signer removal.** The SOW's "freeze/pause override" is the owner removing the agent signer from its rule (no global pause exists in OZ smart accounts).
 
 ## Known limitations
 
