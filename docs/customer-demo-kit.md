@@ -116,4 +116,4 @@ The dashboard has no analytics yet. To get a traffic report, enable Vercel Web A
 | User testing / UX session | Same call, section 4: customer completes 4 dashboard tasks, ease scores | Loom link + timestamp |
 | Website traffic report | Vercel Web Analytics, <date range> | Screenshot / share link |
 | Customer interview summary | <N> interview summaries using the template above | Doc link |
-| Other | Narrated product demo video; live testnet dashboard; on-chain evidence | https://youtu.be/KkSlOZQgZTY, https://guardrail-console.vercel.app, [evidence.md](evidence.md) |
+| Other | Narrated product demo video; live testnet dashboard; on-chain evidence; AI-assisted usability review ([ux-review.md](ux-review.md), labeled as AI, not customer evidence) | https://youtu.be/KkSlOZQgZTY, https://guardrail-console.vercel.app, [evidence.md](evidence.md) |
