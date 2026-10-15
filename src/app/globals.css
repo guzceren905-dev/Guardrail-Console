@@ -177,7 +177,12 @@ h1 { color: #17262d; font-size: 28px; font-weight: 650; letter-spacing: -1.1px; 
 @media (max-width: 680px) {
   .sidebar { bottom: auto; height: 61px; padding: 0 15px; position: sticky; top: 0; width: 100%; }
   .brand { height: 61px; }
-  .sidebar > :not(.brand) { display: none; }
+  .sidebar { align-items: center; flex-direction: row; gap: 8px; }
+  .sidebar > :not(.brand):not(.side-nav) { display: none; }
+  .side-nav { display: flex; gap: 2px; margin-left: auto; }
+  .nav-link { font-size: 11px; gap: 0; min-height: 32px; padding: 0 8px; }
+  .nav-link .nav-icon, .nav-link .nav-count { display: none; }
+  .brand > span:last-child { display: none; }
   .main-content { margin-left: 0; }
   .topbar { height: 50px; padding: 0 16px; }
   .topbar-actions { gap: 9px; }
@@ -250,3 +255,8 @@ a.network-button { align-items: center; text-decoration: none; }
   .panel-heading { flex-direction: column; gap: 8px; }
   .reconcile { white-space: normal; }
 }
+.scroll-hint { color: #a0aaad; display: none; font-size: 9px; padding: 8px 12px 0; }
+.skeleton { animation: pulse 1.6s infinite; background: #eef2f2; border-radius: 5px; }
+.skeleton-value { height: 26px; margin-top: 14px; width: 55%; }
+.skeleton-line { height: 9px; margin-top: 10px; width: 75%; }
+@media (max-width: 680px) { .scroll-hint { display: block; } }

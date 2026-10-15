@@ -149,6 +149,7 @@ function railOf(a: Activity): { label: string; className: string } {
 function ActivityTable({ rows, data, now }: { rows: Activity[]; data: DashboardState; now: number }) {
   return (
     <div className="activity-table-wrap">
+      <div className="scroll-hint">Swipe the table sideways for result and transaction →</div>
       <table className="activity-table">
         <thead><tr><th>Counterparty</th><th>Rail</th><th>Amount</th><th>Result</th><th>Time</th><th>Tx</th></tr></thead>
         <tbody>
@@ -161,7 +162,7 @@ function ActivityTable({ rows, data, now }: { rows: Activity[]; data: DashboardS
                   <div className="recipient">{a.label ?? short(a.counterparty)}</div>
                   <div className="activity-note">{a.kind === "deposit" ? "from " : "to "}{short(a.counterparty)}</div>
                 </td>
-                <td><span className={"protocol-tag " + rail.className}>{rail.label}</span></td>
+                <td><span className={"protocol-tag " + rail.className} title={rail.label === "x402" ? "x402: the agent paid an API per request over HTTP" : undefined}>{rail.label}</span></td>
                 <td className="amount-cell">{(a.kind === "deposit" ? "+" : "") + usdc(a.amount)} <span>USDC</span></td>
                 <td>
                   <span className={"result-tag " + (blocked ? "rejected" : "settled")}>
@@ -285,7 +286,20 @@ export default function Home() {
           </section>
 
           {error && !data && <div className="alert danger" role="alert"><span className="alert-icon">!</span><div><strong>Live data unavailable</strong><span>{error}</span></div></div>}
-          {!data && !error && <div className="loading">Loading live data from Stellar RPC…</div>}
+          {!data && !error && (
+            <div aria-busy="true" aria-label="Loading live data from Stellar RPC">
+              <section className="metrics-grid">
+                {["Treasury balance", "Spent in rolling 24h", "Budget remaining"].map((label) => (
+                  <article className="metric-card" key={label}>
+                    <span className="metric-label">{label}</span>
+                    <div className="skeleton skeleton-value" />
+                    <div className="skeleton skeleton-line" />
+                  </article>
+                ))}
+              </section>
+              <div className="loading">Reading the smart account from Stellar testnet…</div>
+            </div>
+          )}
 
           {data && (
             <>
@@ -294,7 +308,7 @@ export default function Home() {
               <section className="metrics-grid" aria-label="Treasury summary">
                 <MetricCard label="Treasury balance" value={usdc(data.balance)} detail="USDC held by the smart account" accent="mint" icon="$" />
                 <MetricCard label={`Spent in rolling ${hours}h`} value={usdc(data.spentInWindow)} detail={`${capPct}% of ${usdc(data.dailyCap)} cap`} accent="blue" icon="↗" />
-                <MetricCard label="Budget remaining" value={usdc(data.remaining)} detail={`Rolling ${data.periodLedgers.toLocaleString("en-US")}-ledger window`} accent="violet" icon="◷" />
+                <MetricCard label="Budget remaining" value={usdc(data.remaining)} detail={`Resets on a rolling ~${hours}h window`} accent="violet" icon="◷" />
               </section>
 
               <section className="middle-grid">
@@ -318,7 +332,7 @@ export default function Home() {
                   </div>
                   <div className="policy-rule">
                     <div className="rule-icon cap-icon">↗</div>
-                    <div className="rule-copy"><strong>Rolling spend cap</strong><small>{usdc(data.dailyCap)} USDC per {data.periodLedgers.toLocaleString("en-US")} ledgers (~{hours}h) · OZ spending-limit policy</small></div>
+                    <div className="rule-copy"><strong>Rolling spend cap</strong><small title={`${data.periodLedgers.toLocaleString("en-US")} ledgers`}>{usdc(data.dailyCap)} USDC per ~{hours}h · OpenZeppelin spending-limit policy</small></div>
                     <a className="rule-link" href={explorer(`contract/${data.policies.spendingLimit}`)} target="_blank" rel="noreferrer" aria-label="Spending-limit policy contract">↗</a>
                   </div>
                   <div className="policy-rule">

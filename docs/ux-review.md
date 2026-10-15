@@ -27,6 +27,18 @@ Ranked by impact on a first-time, non-technical viewer (such as the Ambassador C
 6. **Odd amounts.** Rows like "$10.0000001 USDC" come from boundary tests and look like a bug to an outsider. *Fix:* label test transactions, or round display to 2 decimals with the exact value in a tooltip.
 7. **Freeze state is invisible in history.** The owner freeze is the strongest safety story, but past freeze/unfreeze events do not appear in the payment history. *Fix:* show them as events in the activity list.
 
+## Fixes made after this review (2026-10-15)
+
+| Finding | Status |
+|---|---|
+| 1. Slow, empty first load | Fixed: skeleton cards while data loads |
+| 2. Protocol jargon | Partly fixed: "~24h" instead of ledger counts (ledgers in a tooltip), tooltip on the x402 tag |
+| 3. No navigation on mobile | Fixed: Overview / Guardrails / Activity tabs in the mobile header |
+| 4. Table cut off on mobile | Fixed: "swipe sideways" hint above the table |
+| 5. Demo looks idle | Open: run `pnpm demo` before sharing the link |
+| 6. Odd amounts | Kept: the exact $10.0000001 shows why the payment broke the $10 cap |
+| 7. Freeze events not in history | Open: needs indexer support |
+
 ## What worked
 
 - The three headline numbers answer "what can it spend / what did it spend" at once.
